@@ -2,18 +2,13 @@
 # your system. Help is available in the configuration.nix(5) man page, on
 # https://search.nixos.org/options and in the NixOS manual (`nixos-help`).
 
-{ config, pkgs, pkgs-unstable, ... }:
+{ config, pkgs, ... }:
 
 {
-nix.settings.experimental-features = [ "nix-command" "flakes" ];
   imports =
     [ # Include the results of the hardware scan.
       ./hardware-configuration.nix
     ];
-
-#Enable 32bit gaming
-hardware.graphics.enable32Bit = true;
-
 
   # Use the systemd-boot EFI boot loader.
   boot.loader.systemd-boot.enable = true;
@@ -57,107 +52,51 @@ hardware.graphics.enable32Bit = true;
     alsa.support32Bit = true;
     pulse.enable = true;
     # If you want to use JACK applications, uncomment this
-    #jack.enable = true;
-
-    # Use the WirePlumber session manager
-    #wireplumber.enable = true;
+    # jack.enable = true;
   };
-
-#Fonts packages so i can larp even more of using the terminal
-fonts.packages = with pkgs; [
-  fira-code
-  jetbrains-mono
-
-];
-
-
-
 
   # Enable touchpad support (enabled default in most desktopManager).
   # services.libinput.enable = true;
+
   # Define a user account. Don't forget to set a password with ‘passwd’.
-  users.users."weatherday" = {
+  users.users."weatherdday" = {
     isNormalUser = true;
-    description = "weatherday";
-    extraGroups = [ "networkmanager" "wheel" "libvirtd" ];
+    description = "weatherdday";
+    extraGroups = [ "networkmanager" "wheel" ];
     packages = with pkgs; [
-    git
-easyeffects
-wget
-(let
-  pseint = pkgs.buildFHSEnv {
-    name = "pseint";
-    targetPkgs = p: with p; [
-  libxxf86vm libsm libice libx11
-  libGL libGLU gtk3
-  glib gdk-pixbuf cairo pango atk harfbuzz
-  fontconfig freetype zlib libpng
-  libxext libxrender libxi libxcursor libxrandr libxinerama
-  libxt libxtst
-  wayland
-  gsettings-desktop-schemas
-  adwaita-icon-theme
-    ];
-    runScript = pkgs.writeShellScript "pseint-run" ''
-      export GDK_BACKEND=x11
-      cd /home/weatherday/Documents/pseint
-      exec ./pseint "$@"
-    '';
-  };
-  pseint-desktop = pkgs.makeDesktopItem {
-    name = "pseint";
-    desktopName = "PSeInt";
-    exec = "pseint";
-    categories = [ "Education" "Development" ];
-  };
-in pkgs.symlinkJoin {
-  name = "pseint";
-  paths = [ pseint pseint-desktop ];
-})
-####pkgs-unstable.osu-lazer-bin
-lutris
-steam
-obs-studio
-lufus
-pkgs-unstable.heroic
-pkgs-unstable.brave-origin
-pkgs.kitty
-#Python packages with added libraries or whatever
-(pkgs.python3.withPackages (ps: with ps; [numpy pandas matplotlib tkinter polars]))
-discord
-joplin-desktop
-blender
-pkgs.kdePackages.kdenlive
-audacity
-openlinkhub
-vim
-vmware-workstation
-nodejs
-#Qemu and kvm
-pkgs.qemu
-pkgs.virt-manager
-#Roblox studio and developement
-vinegar
-#String of packages for c language programing
-  gcc
-  gdb
-  gnumake
-  cmake
-  pkg-config
-  clang-tools   # provides clangd
-  bear
-  lldb
-#For vscode extensions
-    (vscode-with-extensions.override {
-      vscode = vscodium;
-      vscodeExtensions = with vscode-extensions; [
-        llvm-vs-code-extensions.vscode-clangd
-        vadimcn.vscode-lldb
-      ];
-    })
+    #  thunderbird
     ];
   };
 
+  # Allow unfree packages
+  nixpkgs.config.allowUnfree = true;
+
+  # List packages installed in system profile.
+  # You can use https://search.nixos.org/ to find more packages (and options).
+   environment.systemPackages = with pkgs; [
+     vim # Do not forget to add an editor to edit configuration.nix! The Nano editor is also installed by default.
+     wget
+fish
+alacritty
+tor-browser
+brave
+qemu
+virt-manager
+steam
+obs-studio
+discord
+spotify
+heroic
+neovim
+tmux
+vinegar
+#Python packages with added libraries or whatever
+(pkgs.python3.withPackages (ps: with ps; [numpy pandas matplotlib tkinter polars])) 
+];
+
+
+#Enable 32bit gaming
+hardware.graphics.enable32Bit = true;
 
 
   virtualisation.libvirtd.enable = true;
@@ -181,33 +120,6 @@ vinegar
     '';
   };
 
-
-
-
-
-
-virtualisation.vmware.host.enable = true;
-programs.hyprland.enable = true; # enable Hyprland
-
-
-services.udev.extraRules = ''
-  SUBSYSTEMS=="usb", ATTRS{idVendor}=="1b1c", MODE="0666"
-  KERNEL=="hidraw*", ATTRS{idVendor}=="1b1c", MODE="0666"
-'';
-
-
-  # Install firefox.
-  programs.firefox.enable = true;
-
-  # Allow unfree packages
-  nixpkgs.config.allowUnfree = true;
-
-  # List packages installed in system profile.
-  # You can use https://search.nixos.org/ to find more packages (and options).
-  # environment.systemPackages = with pkgs; [
-  #   vim # Do not forget to add an editor to edit configuration.nix! The Nano editor is also installed by default.
-  #   wget
-  # ];
 
   # Some programs need SUID wrappers, can be configured further or are
   # started in user sessions.
@@ -252,12 +164,10 @@ services.udev.extraRules = ''
   # For more information, see `man configuration.nix` or https://nixos.org/manual/nixos/stable/options#opt-system.stateVersion .
   system.stateVersion = "26.05"; # Did you read the comment?
 
-
 nix.gc = {
 automatic = true;
 dates = "weekly";
 options = "--delete-older-than-30d";
 };
-
 
 }
